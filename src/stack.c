@@ -1,12 +1,15 @@
-#include "stack.h"
+#include <stdlib.h>
+#include "../inc/stack.h"
+
 
 //  0: success
 //  1: out of memory
-BYTE push(STACK *pstack, BYTE i, BYTE j, BYTE way) {
-    struct entry *new;
+Byte push(Stack *pstack, Byte i, Byte j, Byte way) {
+    struct entry* new;
 
-    if ((new = (struct entry *) malloc(sizeof(struct entry))) == NULL)
-        return 1;
+    new = (struct entry*) malloc(sizeof(struct entry));
+    if (new == NULL) return 1;
+
     new->i = i;
     new->j = j;
     new->way = way;
@@ -18,10 +21,11 @@ BYTE push(STACK *pstack, BYTE i, BYTE j, BYTE way) {
 
 //  0: success
 //  1: empty stack
-BYTE pop(STACK *pstack, BYTE *i, BYTE *j, BYTE *way) {
-    STACK stack = *pstack;
+Byte pop(Stack *pstack, Byte *i, Byte *j, Byte *way) {
+    Stack stack = *pstack;
 
     if (stack == NULL) return 1;
+
     *i = stack->i;
     *j = stack->j;
     *way = stack->way;

@@ -1,10 +1,23 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -O2
-EXE = SudokuSolver
-OBJS = main.o UI.o solve.o stack.o
+INCDIR = inc
+SRCDIR = src
+OBJDIR = obj
 
-compile: $(OBJS)
-	$(CC) $(CFLAGS) -o $(EXE) $(OBJS)
+CC = gcc
+EXE = sudokusolver
+CFLAGS = -Wall -Wextra -pedantic -march=native -O3 -pipe
+
+_DEPS = general.h UI.h solve.h stack.h
+DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
+
+_OBJ = UI.o solve.o stack.o
+OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
+
+
+program: $(OBJ)
+	$(CC) $(CFLAGS) -o $(EXE) $(SRCDIR)/main.c $(OBJ)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -rf *.o
+	rm -rf $(OBJDIR)/*.o

@@ -1,12 +1,14 @@
-#include "solve.h"
+#include <stdlib.h>
+#include "../inc/solve.h"
+
 
 //  output: number of possibilities for that position
 //  sol:    solution if there's only one possibility
-BYTE check_used(BYTE used[], BYTE *sol) {
-    BYTE i, r = 0;
+Byte check_used(Byte used[], Byte *sol) {
+    Byte i, r = 0;
 
     for (i = 0; i < SIZE; ++i)
-        if (used[i] == FALSE) {
+        if (used[i] == false) {
             ++r;
             *sol = i + 1;
         }
@@ -14,18 +16,18 @@ BYTE check_used(BYTE used[], BYTE *sol) {
     return r;
 }
 
-void get_used(BYTE used[], GRID grid, BYTE i, BYTE j) {
-    BYTE x, y, m, n;
+void get_used(Byte used[], Grid grid, Byte i, Byte j) {
+    Byte x, y, m, n;
 
     // initialize array with 0's
     for (x = 0; x < SIZE; ++x)
-        used[x] = FALSE;
+        used[x] = false;
     // check line and column
     for (x = 0; x < SIZE; ++x) {
         if (grid[i][x] != EMPTY)
-            used[grid[i][x] - 1] = TRUE;
+            used[grid[i][x] - 1] = true;
         if (grid[x][j] != EMPTY)
-            used[grid[x][j] - 1] = TRUE;
+            used[grid[x][j] - 1] = true;
     }
     // check 3x3 square
     x = i - i % 3;
@@ -33,18 +35,18 @@ void get_used(BYTE used[], GRID grid, BYTE i, BYTE j) {
     for (m = 0; m < 3; ++m)
         for (n = 0; n < 3; ++n)
             if (grid[x + m][y + n] != EMPTY)
-                used[grid[x + m][y + n] - 1] = TRUE;
+                used[grid[x + m][y + n] - 1] = true;
 }
 
 //  0:      grid's full             FULL
 //  1:      no solution             DEAD_END
 //  2:      guess new position      NEW_GUESS
 //  255:    out of memory           OUT_OF_MEMORY
-BYTE fill(GRID grid, STACK *stack, BYTE *ri, BYTE *rj) {
-    BYTE i, j, sol, num_poss, stop = FALSE, r, count = SIZE, used[SIZE];
+Byte fill(Grid grid, Stack *stack, Byte *ri, Byte *rj) {
+    Byte i, j, sol, num_poss, stop = false, r, count = SIZE, used[SIZE];
 
     while (!stop) {
-        stop = TRUE;
+        stop = true;
         r = FULL;
         for (i = 0; i < SIZE; ++i)
             for (j = 0; j < SIZE; ++j)
@@ -56,7 +58,7 @@ BYTE fill(GRID grid, STACK *stack, BYTE *ri, BYTE *rj) {
                         grid[i][j] = sol;
                         if (stack != NULL && push(stack, i, j, FILLED) == 1)
                             return OUT_OF_MEMORY;
-                        stop = FALSE;
+                        stop = false;
                     } else if (r == FULL || count > num_poss) {     // for the last iteration
                         r = NEW_GUESS;
                         *ri = i;
@@ -69,8 +71,8 @@ BYTE fill(GRID grid, STACK *stack, BYTE *ri, BYTE *rj) {
     return r;
 }
 
-void undo(GRID grid, STACK *pstack) {
-    BYTE i, j, way;
+void undo(Grid grid, Stack *pstack) {
+    Byte i, j, way;
 
     do {
         if (pop(pstack, &i, &j, &way) == 1) break;
@@ -78,7 +80,7 @@ void undo(GRID grid, STACK *pstack) {
     } while (way == FILLED);
 }
 
-void copy_grid(GRID grid1, GRID grid2) {
+void copy_grid(Grid grid1, Grid grid2) {
     for (int i = 0; i < SIZE; ++i)
         for (int j = 0; j < SIZE; ++j)
             grid2[i][j] = grid1[i][j];
@@ -88,20 +90,20 @@ void copy_grid(GRID grid1, GRID grid2) {
 //  1:      only one solution found
 //  2+:     more than one solution found
 //  255:    out of memory                   OUT_OF_MEMORY
-BYTE solve_aux(GRID grid_test, GRID **grid_out, STACK *pstack, BYTE i, BYTE j) {
-    static BYTE num_sol = 0;
-    BYTE index, x, used[SIZE], i2, j2;
+Byte solve_aux(Grid grid_test, Grid **grid_out, Stack *pstack, Byte i, Byte j) {
+    static Byte num_sol = 0;
+    Byte index, x, used[SIZE], i2, j2;
 
     get_used(used, grid_test, i, j);
     for (x = 0; x < SIZE && num_sol < 2; ++x)
-        if (used[x] == FALSE) {
+        if (used[x] == false) {
             grid_test[i][j] = x+1;
             if (push(pstack, i, j, GUESSED) == 1)
                 return OUT_OF_MEMORY;
             index = fill(grid_test, pstack, &i2, &j2);
             switch (index) {
                 case FULL:  if (++num_sol == 1) {
-                                if ((*grid_out = (GRID *) malloc(sizeof(GRID))) == NULL)
+                                if ((*grid_out = (Grid *) malloc(sizeof(Grid))) == NULL)
                                     return OUT_OF_MEMORY;
                                 copy_grid(grid_test, **grid_out);
                                 undo(grid_test, pstack);
@@ -120,9 +122,9 @@ BYTE solve_aux(GRID grid_test, GRID **grid_out, STACK *pstack, BYTE i, BYTE j) {
 //  1:      only one solution found
 //  2+:     more than one solution found
 //  255:    out of memory                   OUT_OF_MEMORY
-BYTE solve(GRID *grid_test, GRID **grid_out) {
-    BYTE index, i, j, r;
-    STACK stack = NULL;
+Byte solve(Grid *grid_test, Grid **grid_out) {
+    Byte index, i, j, r;
+    Stack stack = NULL;
 
     index = fill(*grid_test, NULL, &i, &j);
     switch (index) {

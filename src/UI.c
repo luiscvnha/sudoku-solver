@@ -1,45 +1,58 @@
-#include "UI.h"
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include "../inc/UI.h"
+
+
+static void flush() {
+	char c;
+	while ((c = getchar()) != '\n' && c != EOF);
+}
+
+static Bool input_line(char in[]) {
+	int bytes_read = read(STDIN_FILENO, in, SIZE);
+	if (bytes_read <= 0) {putchar('\n'); return false;}
+
+	if (bytes_read == SIZE && in[SIZE-1] != '\n') flush();
+
+	if (in[bytes_read-1] == '\n') --bytes_read;
+
+	for (; bytes_read < SIZE; ++bytes_read)
+		in[bytes_read] = '0';
+
+	return true;
+}
 
 void print_info() {
-    puts("(i) Spaces and 0's count as empty\n");
+	puts("(i) Spaces and 0's count as empty\n");
 }
 
-void input_line(char in[]) {
-    BYTE j;
+void input(Grid grid_in, Grid grid_test) {
+	char in[SIZE];
 
-    if (scanf("%[^\n]s", in) == 0) in[0] = '\0';
-    getchar();          //flush stdin
-    in[SIZE] = '\0';
-    for (j = strlen(in); j < SIZE; ++j)
-        in[j] = '0';
+	puts("Input:");
+	puts("   123456789\n");
+	for (Byte i = 0; i < SIZE; ++i) {
+		printf("%d  ", i+1);
+		if (input_line(in)) {
+			for (Byte j = 0; j < SIZE; ++j)
+				if (in[j] == ' ' || in[j] == '0') {
+					grid_in[i][j] = EMPTY;
+					grid_test[i][j] = EMPTY;
+				} else if (in[j] >= '1' && in[j] <= '9') {
+					grid_in[i][j] = in[j] - '0';
+					grid_test[i][j] = in[j] - '0';
+				} else {
+					j = SIZE;
+					--i;
+				}
+			++i;
+		}
+	}
 }
 
-void input(GRID grid_in, GRID grid_test) {
-    BYTE i, j;
-    char in[2*SIZE+1];
-
-    puts("Input:");
-    puts("   123456789\n");
-    for (i = 0; i < SIZE; ++i) {
-        printf("%d  ", i+1);
-        input_line(in);
-        for (j = 0; j < SIZE; ++j) {
-            if (in[j] == ' ' || in[j] == '0') {
-                grid_in[i][j] = EMPTY;
-                grid_test[i][j] = EMPTY;
-            } else if (in[j] >= '1' && in[j] <= '9') {
-                grid_in[i][j] = in[j] - '0';
-                grid_test[i][j] = in[j] - '0';
-            } else {
-                j = SIZE;
-                --i;
-            }
-        }
-    }
-}
-
-void print_sol(GRID grid_in, GRID grid_out) {
-    BYTE i, j;
+void print_sol(Grid grid_in, Grid grid_out) {
+    Byte i, j;
 
     puts("Grid:                     Solution:");
     for (i = 0; i < SIZE; ++i) {
@@ -60,8 +73,8 @@ void print_sol(GRID grid_in, GRID grid_out) {
     puts("+---+---+---+             +---+---+---+");
 }
 
-void print_err(GRID grid, BYTE error) {
-    BYTE i, j;
+void print_err(Grid grid, Byte error) {
+    Byte i, j;
 
     puts("Grid:");
     for (i = 0; i < SIZE; ++i) {
