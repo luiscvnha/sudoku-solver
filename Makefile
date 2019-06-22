@@ -20,4 +20,4 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -rf $(OBJDIR)/*.o
+	rm -rf $(EXE) $(OBJDIR)/*.o
