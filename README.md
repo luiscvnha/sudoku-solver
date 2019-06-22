@@ -13,6 +13,7 @@ make
 ```
 
 - input the grid
+
 example:
 ```
 Input:
