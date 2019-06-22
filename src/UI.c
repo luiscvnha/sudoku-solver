@@ -32,7 +32,7 @@ void input(Grid grid_in, Grid grid_test) {
 
 	puts("Input:");
 	puts("   123456789\n");
-	for (Byte i = 0; i < SIZE; ++i) {
+	for (Byte i = 0; i < SIZE;) {
 		printf("%d  ", i+1);
 		if (input_line(in)) {
 			for (Byte j = 0; j < SIZE; ++j)
