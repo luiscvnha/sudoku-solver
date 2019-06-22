@@ -4,7 +4,7 @@ OBJDIR = obj
 
 CC = gcc
 EXE = sudokusolver
-CFLAGS = -Wall -Wextra -pedantic -march=native -O3 -pipe
+CFLAGS = -Wall -Wextra -pedantic -march=native -O2
 
 _DEPS = general.h UI.h solve.h stack.h
 DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))

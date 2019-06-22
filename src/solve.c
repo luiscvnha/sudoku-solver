@@ -2,8 +2,8 @@
 #include "../inc/solve.h"
 
 
-//  output: number of possibilities for that position
-//  sol:    solution if there's only one possibility
+// returns:	number of possibilities for that position
+// sol:		returns solution if there's only one possibility
 Byte check_used(Byte used[], Byte *sol) {
     Byte i, r = 0;
 
@@ -38,10 +38,12 @@ void get_used(Byte used[], Grid grid, Byte i, Byte j) {
                 used[grid[x + m][y + n] - 1] = true;
 }
 
-//  0:      grid's full             FULL
-//  1:      no solution             DEAD_END
-//  2:      guess new position      NEW_GUESS
-//  255:    out of memory           OUT_OF_MEMORY
+/* returns
+ * FULL:					grid's full
+ * DEAD_END:				no solution
+ * NEW_GUESS:				guess new position
+ * OUT_OF_MEMORY:			out of memory
+ */
 Byte fill(Grid grid, Stack *stack, Byte *ri, Byte *rj) {
     Byte i, j, sol, num_poss, stop = false, r, count = SIZE, used[SIZE];
 
@@ -86,10 +88,12 @@ void copy_grid(Grid grid1, Grid grid2) {
             grid2[i][j] = grid1[i][j];
 }
 
-//  0:      no solutions found
-//  1:      only one solution found
-//  2+:     more than one solution found
-//  255:    out of memory                   OUT_OF_MEMORY
+/* returns
+ * 0:					no solutions found
+ * 1:					only one solution found
+ * 2:					more than one solution found
+ * OUT_OF_MEMORY:		out of memory
+ */
 Byte solve_aux(Grid grid_test, Grid **grid_out, Stack *pstack, Byte i, Byte j) {
     static Byte num_sol = 0;
     Byte index, x, used[SIZE], i2, j2;
@@ -118,25 +122,25 @@ Byte solve_aux(Grid grid_test, Grid **grid_out, Stack *pstack, Byte i, Byte j) {
     return num_sol;
 }
 
-//  0:      no solutions found
-//  1:      only one solution found
-//  2+:     more than one solution found
-//  255:    out of memory                   OUT_OF_MEMORY
+/* returns
+ * 0:					no solutions found
+ * 1:					only one solution found
+ * 2:					more than one solution found
+ * OUT_OF_MEMORY:		out of memory
+ */
 Byte solve(Grid *grid_test, Grid **grid_out) {
-    Byte index, i, j, r;
+    Byte index, i, j;
     Stack stack = NULL;
 
     index = fill(*grid_test, NULL, &i, &j);
     switch (index) {
-        case FULL:  *grid_out = grid_test;
-                    r = 1;
-                    break;
-        case DEAD_END:  r = 0;
-                        break;
-        case NEW_GUESS: r = solve_aux(*grid_test, grid_out, &stack, i, j);
-                        break;
-        default:    r = OUT_OF_MEMORY;
-    }
+        case FULL:	*grid_out = grid_test;
+        			return 1;
 
-    return r;
+        case DEAD_END:	return 0;
+
+        case NEW_GUESS:	return solve_aux(*grid_test, grid_out, &stack, i, j);
+
+        default: return OUT_OF_MEMORY;
+    }
 }

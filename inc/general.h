@@ -11,9 +11,6 @@
 
 typedef unsigned char Byte;
 
-typedef char* String;
-typedef const char* constString;
-
 typedef enum {false = 0, true = 1} Bool;
 
 typedef Byte Grid[SIZE][SIZE];
