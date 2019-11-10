@@ -2,17 +2,17 @@
 A simple terminal application that solves a Sudoku puzzle.
 
 ## How to use
-- compile
+### 1. compile
 ```
 $ make
 ```
 
-- execute
+### 2. execute
 ```
 $ ./sudokusolver
 ```
 
-- input the grid
+### 3. input the grid
 
 example:
 ```
@@ -30,7 +30,7 @@ Input:
 9  5
 ```
 
-- get the solution
+### 4. get the solution
 ```
 Grid:                     Solution:
 +---+---+---+             +---+---+---+
