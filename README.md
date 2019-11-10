@@ -1,18 +1,18 @@
 # Sudoku Solver
 A simple terminal application that solves a Sudoku puzzle.
 
-## How to use
-### 1. compile
+## Installation
 ```
 $ make
 ```
 
-### 2. execute
+## How to use
+### 1. execute
 ```
 $ ./sudokusolver
 ```
 
-### 3. input the grid
+### 2. input the grid
 
 example:
 ```
@@ -30,7 +30,7 @@ Input:
 9  5
 ```
 
-### 4. get the solution
+### 3. get the solution
 ```
 Grid:                     Solution:
 +---+---+---+             +---+---+---+
