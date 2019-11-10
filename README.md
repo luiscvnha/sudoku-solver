@@ -4,12 +4,12 @@ A simple terminal application that solves a Sudoku puzzle.
 ## How to use
 - compile
 ```
-make
+$ make
 ```
 
 - execute
 ```
-./sudokusolver
+$ ./sudokusolver
 ```
 
 - input the grid
