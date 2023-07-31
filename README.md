@@ -7,14 +7,14 @@ $ make
 ```
 
 ## How to use
-### 1. execute
+### 1. Execute
 ```
 $ ./sudokusolver
 ```
 
-### 2. input the grid
+### 2. Input the grid
 
-example:
+Example:
 ```
 Input:
    123456789
@@ -30,7 +30,7 @@ Input:
 9  5
 ```
 
-### 3. get the solution
+### 3. Get the solution
 ```
 Grid:                     Solution:
 +---+---+---+             +---+---+---+
