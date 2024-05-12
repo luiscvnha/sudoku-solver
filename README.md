@@ -1,6 +1,6 @@
 # Sudoku Solver
 
-A simple terminal application that solves Sudoku puzzles.
+A terminal application that solves Sudoku puzzles.
 
 ## Installation
 
