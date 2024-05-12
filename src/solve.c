@@ -1,146 +1,176 @@
-#include <stdlib.h>
-#include "../inc/solve.h"
+#include "solve.h"
+#include "ext.h"
+#include "stack.h"
 
 
-// returns:	number of possibilities for that position
-// sol:		returns solution if there's only one possibility
-Byte check_used(Byte used[], Byte *sol) {
-    Byte i, r = 0;
+typedef enum state {
+    FULL,
+    DEAD_END,
+    NEW_GUESS
+} State;
 
-    for (i = 0; i < SIZE; ++i)
-        if (used[i] == false) {
-            ++r;
-            *sol = i + 1;
+
+static uint8_t get_solution(const bool available[], uint8_t* out_solution) {
+    uint8_t num_available = 0;
+
+    for (uint8_t i = 0; i < GRID_SIDE; ++i) {
+        if (available[i]) {
+            ++num_available;
+            *out_solution = i + 1;
         }
+    }
 
-    return r;
+    return num_available;
 }
 
-void get_used(Byte used[], Grid grid, Byte i, Byte j) {
-    Byte x, y, m, n;
 
-    // initialize array with 0's
-    for (x = 0; x < SIZE; ++x)
-        used[x] = false;
-    // check line and column
-    for (x = 0; x < SIZE; ++x) {
-        if (grid[i][x] != EMPTY)
-            used[grid[i][x] - 1] = true;
-        if (grid[x][j] != EMPTY)
-            used[grid[x][j] - 1] = true;
+static void get_available(Grid grid, uint8_t i, uint8_t j, bool out_available[]) {
+    uint8_t x, y;
+
+    for (x = 0; x < GRID_SIDE; ++x) {
+        out_available[x] = true;
     }
+
+    // check line and column
+    for (x = 0; x < GRID_SIDE; ++x) {
+        if (grid_get(grid, i, x) != GRID_EMPTY) {
+            out_available[grid_get(grid, i, x) - 1] = false;
+        }
+        if (grid_get(grid, x, j) != GRID_EMPTY) {
+            out_available[grid_get(grid, x, j) - 1] = false;
+        }
+    }
+
     // check 3x3 square
     x = i - i % 3;
     y = j - j % 3;
-    for (m = 0; m < 3; ++m)
-        for (n = 0; n < 3; ++n)
-            if (grid[x + m][y + n] != EMPTY)
-                used[grid[x + m][y + n] - 1] = true;
+    for (uint8_t a = 0; a < 3; ++a) {
+        for (uint8_t b = 0; b < 3; ++b) {
+            if (grid_get(grid, x+a, y+b) != GRID_EMPTY) {
+                out_available[grid_get(grid, x+a, y+b) - 1] = false;
+            }
+        }
+    }
 }
 
-/* returns
- * FULL:					grid's full
- * DEAD_END:				no solution
- * NEW_GUESS:				guess new position
- * OUT_OF_MEMORY:			out of memory
- */
-Byte fill(Grid grid, Stack *stack, Byte *ri, Byte *rj) {
-    Byte i, j, sol, num_poss, stop = false, r, count = SIZE, used[SIZE];
+
+static void undo(Grid grid, Stack stack) {
+    uint8_t i, j;
+    bool guessed;
+
+    do {
+        if (!stack_pop(stack, &i, &j, &guessed)) break;
+        grid_set(grid, i, j, GRID_EMPTY);
+    } while (!guessed);
+}
+
+
+static State fill(Grid grid, Stack stack, uint8_t* out_i, uint8_t* out_j) {
+    uint8_t i, j, solution, num_available;
+    bool stop = false;
+    bool available[GRID_SIDE];
 
     while (!stop) {
         stop = true;
-        r = FULL;
-        for (i = 0; i < SIZE; ++i)
-            for (j = 0; j < SIZE; ++j)
-                if (grid[i][j] == EMPTY) {
-                    get_used(used, grid, i, j);
-                    if ((num_poss = check_used(used, &sol)) == 0)
+        for (i = 0; i < GRID_SIDE; ++i) {
+            for (j = 0; j < GRID_SIDE; ++j) {
+                if (grid_get(grid, i, j) == GRID_EMPTY) {
+                    get_available(grid, i, j, available);
+                    num_available = get_solution(available, &solution);
+                    if (num_available == 0) {
                         return DEAD_END;
-                    else if (num_poss == 1) {
-                        grid[i][j] = sol;
-                        if (stack != NULL && push(stack, i, j, FILLED) == 1)
-                            return OUT_OF_MEMORY;
+                    }
+                    else if (num_available == 1) {
+                        grid_set(grid, i, j, solution);
+                        stack_push(stack, i, j, false);
                         stop = false;
-                    } else if (r == FULL || count > num_poss) {     // for the last iteration
-                        r = NEW_GUESS;
-                        *ri = i;
-                        *rj = j;
-                        count = num_poss;
                     }
                 }
-    }
-
-    return r;
-}
-
-void undo(Grid grid, Stack *pstack) {
-    Byte i, j, way;
-
-    do {
-        if (pop(pstack, &i, &j, &way) == 1) break;
-        grid[i][j] = EMPTY;
-    } while (way == FILLED);
-}
-
-void copy_grid(Grid grid1, Grid grid2) {
-    for (int i = 0; i < SIZE; ++i)
-        for (int j = 0; j < SIZE; ++j)
-            grid2[i][j] = grid1[i][j];
-}
-
-/* returns
- * 0:					no solutions found
- * 1:					only one solution found
- * 2:					more than one solution found
- * OUT_OF_MEMORY:		out of memory
- */
-Byte solve_aux(Grid grid_test, Grid **grid_out, Stack *pstack, Byte i, Byte j) {
-    static Byte num_sol = 0;
-    Byte index, x, used[SIZE], i2, j2;
-
-    get_used(used, grid_test, i, j);
-    for (x = 0; x < SIZE && num_sol < 2; ++x)
-        if (used[x] == false) {
-            grid_test[i][j] = x+1;
-            if (push(pstack, i, j, GUESSED) == 1)
-                return OUT_OF_MEMORY;
-            index = fill(grid_test, pstack, &i2, &j2);
-            switch (index) {
-                case FULL:  if (++num_sol == 1) {
-                                if ((*grid_out = (Grid *) malloc(sizeof(Grid))) == NULL)
-                                    return OUT_OF_MEMORY;
-                                copy_grid(grid_test, **grid_out);
-                                undo(grid_test, pstack);
-                            } break;
-                case DEAD_END:  undo(grid_test, pstack); break;
-                case OUT_OF_MEMORY: return OUT_OF_MEMORY;
-                case NEW_GUESS: if (solve_aux(grid_test, grid_out, pstack, i2, j2) == OUT_OF_MEMORY)
-                                    return OUT_OF_MEMORY;
             }
         }
+    }
 
-    return num_sol;
+    State state = FULL;
+    uint8_t count = GRID_SIDE + 1;
+
+    for (i = 0; i < GRID_SIDE; ++i) {
+        for (j = 0; j < GRID_SIDE; ++j) {
+            if (grid_get(grid, i, j) == GRID_EMPTY) {
+                state = NEW_GUESS;
+                get_available(grid, i, j, available);
+                num_available = get_solution(available, &solution);
+                if (num_available < count) {
+                    *out_i = i;
+                    *out_j = j;
+                    count = num_available;
+                }
+            }
+        }
+    }
+
+    return state;
 }
 
-/* returns
- * 0:					no solutions found
- * 1:					only one solution found
- * 2:					more than one solution found
- * OUT_OF_MEMORY:		out of memory
- */
-Byte solve(Grid *grid_test, Grid **grid_out) {
-    Byte index, i, j;
-    Stack stack = NULL;
 
-    index = fill(*grid_test, NULL, &i, &j);
-    switch (index) {
-        case FULL:	*grid_out = grid_test;
-        			return 1;
+static uint8_t solve_grid_rec(Grid grid, Stack stack, uint8_t i, uint8_t j, Grid* out_grid) {
+    uint8_t x, i2, j2;
+    uint8_t num_solutions = 0;
+    State state;
+    bool available[GRID_SIDE];
 
-        case DEAD_END:	return 0;
+    get_available(grid, i, j, available);
+    for (x = 0; x < GRID_SIDE && num_solutions < 2; ++x) {
+        if (available[x]) {
+            grid_set(grid, i, j, x+1);
+            stack_push(stack, i, j, true);
+            state = fill(grid, stack, &i2, &j2);
+            switch (state) {
+                case FULL:
+                    if (++num_solutions == 1) {
+                        *out_grid = grid_clone(grid);
+                    }
+                    break;
 
-        case NEW_GUESS:	return solve_aux(*grid_test, grid_out, &stack, i, j);
+                case DEAD_END:
+                    break;
 
-        default: return OUT_OF_MEMORY;
+                case NEW_GUESS:
+                    num_solutions += solve_grid_rec(grid, stack, i2, j2, out_grid);
+                    break;
+            }
+            undo(grid, stack);
+        }
     }
+
+    return num_solutions;
+}
+
+
+uint8_t solve_grid(ReadonlyGrid in_grid, Grid* out_grid) {
+    uint8_t i, j, num_solutions;
+    State state;
+    Stack stack = stack_new();
+    Grid grid = grid_clone(in_grid);
+
+    state = fill(grid, stack, &i, &j);
+
+    switch (state) {
+        case FULL:
+            *out_grid = grid_clone(grid);
+            num_solutions = 1;
+            break;
+
+        case DEAD_END:
+            num_solutions = 0;
+            break;
+
+        case NEW_GUESS:
+            num_solutions = solve_grid_rec(grid, stack, i, j, out_grid);
+            break;
+    }
+
+    stack_destroy(&stack);
+    grid_destroy(&grid);
+
+    return num_solutions;
 }

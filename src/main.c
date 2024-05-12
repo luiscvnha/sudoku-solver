@@ -1,25 +1,51 @@
-#include <stdio.h>
-#include "../inc/general.h"
-#include "../inc/UI.h"
-#include "../inc/solve.h"
+#include "ext.h"
+#include "grid.h"
+#include "stack.h"
+#include "view.h"
+#include "solve.h"
+
+#include <string.h>
 
 
-int main() {
-	Byte s;
-	Grid grid_in, grid_test, *grid_out = NULL;
+int main(int argc, char* argv[]) {
+    view_setup();
 
-	setbuf(stdout, NULL);
+    bool interactive_mode;
+    if (argc == 1) {
+        interactive_mode = false;
+    }
+    else if (argc == 2 && strcmp(argv[1], "-i") == 0) {
+        interactive_mode = true;
+    }
+    else {
+        view_usage(argv[0]);
+        return EXIT_FAILURE;
+    }
 
-	print_info();
+    Grid input_grid = NULL;
+    bool successful_input = view_input_grid(interactive_mode, &input_grid);
+    if (!successful_input) {
+        return EXIT_FAILURE;
+    }
 
-	input(grid_in, grid_test);
+    Grid output_grid = NULL;
+    uint8_t solutions = solve_grid(input_grid, &output_grid);
+    switch (solutions) {
+        case 0:
+            view_no_solutions_error();
+            break;
 
-	putchar('\n');
+        case 1:
+            view_output_grid(input_grid, output_grid);
+            break;
 
-	if ((s = solve(&grid_test, &grid_out)) == 1)
-		print_sol(grid_in, *grid_out);
-	else
-		print_err(grid_in, s);
+        default:
+            view_multiple_solutions_error();
+            break;
+    }
 
-	return 0;
+    grid_destroy(&input_grid);
+    grid_destroy(&output_grid);
+
+    return EXIT_SUCCESS;
 }

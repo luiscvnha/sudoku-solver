@@ -1,25 +1,34 @@
-#ifndef stack_h
-#define stack_h
+#ifndef __stack_h__
+#define __stack_h__
+
+/*==================== Imports ====================*/
+
+#include <inttypes.h>
+#include <stdbool.h>
 
 
-#include "general.h"
+/*=================== Data Types ===================*/
+
+typedef struct stack_entry* StackEntry;
 
 
-#define FILLED			0
-#define GUESSED			1
+typedef StackEntry* Stack;
 
 
-typedef struct entry {
-	Byte i;
-	Byte j;
-	Byte way;				// FILLED || GUESSED
-	struct entry* next;
-} *Stack;
+/*=================== Functions ===================*/
+
+Stack stack_new(void);
 
 
-Byte push(Stack *pstack, Byte i, Byte j, Byte way);
+void stack_push(Stack stack, uint8_t i, uint8_t j, bool guessed);
 
-Byte pop(Stack *pstack, Byte *i, Byte *j, Byte *way);
 
+bool stack_pop(Stack stack, uint8_t* out_i, uint8_t* out_j, bool* out_guessed);
+
+
+void stack_destroy(Stack* stack_ptr);
+
+
+/*=================================================*/
 
 #endif

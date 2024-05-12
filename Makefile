@@ -1,23 +1,28 @@
-INCDIR = inc
-SRCDIR = src
-OBJDIR = obj
+IDIR := inc
+SDIR := src
+ODIR := obj
 
-CC = gcc
-EXE = sudokusolver
-CFLAGS = -march=native -O2
+CC := gcc
+CFLAGS := -Wall -Wextra -O2 -std=c17 -I${IDIR}
 
-_DEPS = general.h UI.h solve.h stack.h
-DEPS = $(patsubst %,$(INCDIR)/%,$(_DEPS))
+DEPS := ${wildcard ${IDIR}/*.h}
+SRCS := ${wildcard ${SDIR}/*.c}
+OBJS := ${subst ${SDIR}/,${ODIR}/,${SRCS}}
+OBJS := ${subst .c,.o,${OBJS}}
 
-_OBJ = UI.o solve.o stack.o
-OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
+BIN := sudokusolver
 
 
-program: $(OBJ)
-	$(CC) $(CFLAGS) -o $(EXE) $(SRCDIR)/main.c $(OBJ)
+.DEFAULT_GOAL := ${BIN}
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
-	$(CC) $(CFLAGS) -c -o $@ $<
+.PHONY: clean
+
+
+${ODIR}/%.o: ${SDIR}/%.c ${DEPS}
+	${CC} ${CFLAGS} -c -o $@ $<
+
+${BIN}: ${OBJS}
+	${CC} ${CFLAGS} -o $@ $^
 
 clean:
-	rm -rf $(EXE) $(OBJDIR)/*.o
+	rm -f ${ODIR}/*.o ${BIN}
