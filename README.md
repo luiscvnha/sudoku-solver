@@ -5,7 +5,7 @@ A terminal application that solves Sudoku puzzles.
 ## Installation
 
 ```
-$ make
+make
 ```
 
 ## How to use
